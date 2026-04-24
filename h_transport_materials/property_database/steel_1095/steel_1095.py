@@ -11,10 +11,10 @@ perm_data = np.genfromtxt(
 
 steel_1095_permeability_h = Permeability(
     data_T=1000 / (perm_data[:, 0] * u.K**-1),
-    data_y=perm_data[:, 1] * u.mol * u.m**-1 * u.s**-1 * u.MPa**-0.5,
+    data_y=perm_data[:, 1] * u.ccNTP * u.cm**-1 * u.s**-1 * u.Pa**-0.5,
     source="gadgeel_gas-phase_1979",
     isotope="H",
-    note="Figure 3",
+    note="Figure 3; y-axis is cm3(NTP) H2 / cm / s / (N m^-2)^0.5",
 )
 
 sol_data = np.genfromtxt(
@@ -22,12 +22,21 @@ sol_data = np.genfromtxt(
     delimiter=",",
 )
 
+# Gadgeel 1979 solubility was measured at 50 psi H2. The y-axis is
+# concentration C (cm3 H2 / cm3 metal), not a Sieverts constant, so we divide
+# by sqrt(P_exp) to convert to the Sieverts form htm.Solubility requires.
+P_EXP = (50 * u.psi).to(u.Pa)
+
 steel_1095_solubility_h = Solubility(
     data_T=1000 / (sol_data[:, 0] * u.K**-1),
-    data_y=sol_data[:, 1] * u.mol * u.m**-3 * u.MPa**-0.5,
+    data_y=(sol_data[:, 1] * u.ccNTP * u.cm**-3) / P_EXP**0.5,
     source="gadgeel_gas-phase_1979",
     isotope="H",
-    note="Figure 5",
+    note=(
+        "Figure 5; y-axis is C (cm3 H2 / cm3 metal) measured at 50 psi H2 "
+        "(3.447e5 Pa). Divided by sqrt(P_exp) to convert concentration to "
+        "Sieverts constant, which is the form htm.Solubility requires."
+    ),
 )
 
 diff_data = np.genfromtxt(
